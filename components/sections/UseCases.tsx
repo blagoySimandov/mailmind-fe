@@ -2,52 +2,49 @@ import { Building2, Briefcase, Hospital, School } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-interface UseCasesProps {
-  scrollToSection: (sectionId: string) => void;
-}
-
-export function UseCases({ scrollToSection }: UseCasesProps) {
+export function UseCases() {
   const useCases = [
     {
       icon: Building2,
-      title: "Property Managers",
-      description: "Transform your rental property management with automated responses to common inquiries",
+      title: "Property Management",
+      description: "Automate tenant communications and maintenance requests",
       benefits: [
-        "Automated responses to rental inquiries and applications",
-        "Smart filtering of maintenance requests by priority",
-        "Automated rent payment reminders and confirmations",
-        "Instant responses to common tenant questions 24/7",
+        "Automated response to maintenance requests",
+        "Tenant screening and application processing",
+        "Rent payment reminders and follow-ups",
+        "Property viewing scheduling automation",
       ],
-      impact: "Process 500+ tenant emails daily",
+      impact: "Handle 5000+ tenant inquiries monthly",
     },
     {
       icon: Briefcase,
-      title: "Recruiters & HR Teams",
-      description: "Streamline your recruitment process with intelligent candidate screening and communication",
+      title: "Recruiting & HR",
+      description: "Streamline candidate communication and HR processes",
       benefits: [
-        "Automated application acknowledgments and updates",
-        "Smart candidate screening and qualification",
-        "Automated interview scheduling and reminders",
-        "Bulk candidate communication management",
+        "Automated application acknowledgments",
+        "Interview scheduling assistance",
+        "Candidate status updates",
+        "Employee onboarding communication",
       ],
-      impact: "Handle 1000+ applications monthly",
+      impact: "Process 2000+ applications monthly",
     },
     {
       icon: Hospital,
-      title: "Healthcare Providers",
-      description: "Enhance patient communication while maintaining HIPAA compliance and personal touch",
+      title: "Healthcare",
+      description: "Enhance patient communication and appointment management",
       benefits: [
-        "Automated appointment confirmations and reminders",
-        "Prescription refill request processing",
-        "Pre-visit instruction delivery",
-        "Post-visit follow-up management",
+        "Appointment reminders and rescheduling",
+        "Patient follow-up automation",
+        "Medical record request handling",
+        "Insurance verification assistance",
       ],
-      impact: "Manage 2000+ patient emails weekly",
+      impact: "Manage 10000+ patient emails monthly",
     },
     {
       icon: School,
       title: "Educational Institutions",
-      description: "Streamline admissions and student support with intelligent email automation",
+      description:
+        "Streamline admissions and student support with intelligent email automation",
       benefits: [
         "Automated admissions inquiry responses",
         "Smart routing of student support requests",
@@ -64,8 +61,8 @@ export function UseCases({ scrollToSection }: UseCasesProps) {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Who Uses MailMind?</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            MailMind helps organizations handle large volumes of emails efficiently with 
-            intelligent automation and personalized responses.
+            MailMind helps organizations handle large volumes of emails
+            efficiently with intelligent automation and personalized responses.
           </p>
         </div>
 
@@ -78,8 +75,12 @@ export function UseCases({ scrollToSection }: UseCasesProps) {
                     <useCase.icon className="h-8 w-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-semibold mb-2">{useCase.title}</h3>
-                    <p className="text-muted-foreground">{useCase.description}</p>
+                    <h3 className="text-2xl font-semibold mb-2">
+                      {useCase.title}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {useCase.description}
+                    </p>
                   </div>
                 </div>
 
@@ -87,7 +88,9 @@ export function UseCases({ scrollToSection }: UseCasesProps) {
                   <h4 className="font-semibold text-lg">Key Features:</h4>
                   <ul className="space-y-2">
                     {useCase.benefits.map((benefit, i) => (
-                      <li key={i} className="flex items-center gap-2 text-muted-foreground">
+                      <li
+                        key={i}
+                        className="flex items-center gap-2 text-muted-foreground">
                         <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                         {benefit}
                       </li>
@@ -96,18 +99,21 @@ export function UseCases({ scrollToSection }: UseCasesProps) {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <div className="text-sm text-muted-foreground">Email Volume Handled</div>
+                  <div className="text-sm text-muted-foreground">
+                    Email Volume Handled
+                  </div>
                   <div className="font-semibold text-lg">{useCase.impact}</div>
                 </div>
               </div>
-
               <div className="bg-muted/50 p-4 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   Perfect for high-volume email management
                 </span>
-                <Button variant="secondary" size="sm" onClick={() => scrollToSection("contact")}>
-                  Get Started
-                </Button>
+                <a href="#contact">
+                  <Button variant="secondary" size="sm">
+                    Get Started
+                  </Button>
+                </a>
               </div>
             </Card>
           ))}
@@ -115,11 +121,14 @@ export function UseCases({ scrollToSection }: UseCasesProps) {
 
         <div className="mt-12 text-center">
           <p className="text-lg text-muted-foreground mb-6">
-            Handle any volume of emails efficiently with MailMind's customizable automation platform.
+            Handle any volume of emails efficiently with MailMind's customizable
+            automation platform.
           </p>
-          <Button variant="outline" size="lg" onClick={() => scrollToSection("contact")}>
-            Discuss Your Use Case
-          </Button>
+          <a href="#contact">
+            <Button variant="outline" size="lg">
+              Discuss Your Use Case
+            </Button>
+          </a>
         </div>
       </div>
     </section>

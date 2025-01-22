@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
   activeSection: string;
-  scrollToSection: (sectionId: string) => void;
 }
 
-export function Navbar({ activeSection, scrollToSection }: NavbarProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
+export function Navbar({ activeSection }: NavbarProps) {
   const navItems = [
     { id: "hero", label: "Home" },
     { id: "features", label: "Features" },
@@ -20,45 +17,31 @@ export function Navbar({ activeSection, scrollToSection }: NavbarProps) {
     { id: "contact", label: "Contact" },
   ];
 
-  // Only add backdrop blur after scrolling
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
-    <nav
-      className={`fixed top-0 w-full bg-background/80 z-50 border-b transform translate-z-0 ${
-        isScrolled ? "backdrop-blur-sm" : ""
-      }`}>
+    <nav className="fixed top-0 w-full bg-white/90 z-50 border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div
-            className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => scrollToSection("hero")}>
+          <a href="#hero" className="flex items-center space-x-2">
             <Mail className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">MailMind</span>
-          </div>
+          </a>
           <div className="hidden md:flex space-x-8">
             {navItems.map((item) => (
-              <button
+              <a
                 key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
+                href={`#${item.id}`}
+                className={`text-sm font-medium hover:text-primary ${
                   activeSection === item.id
                     ? "text-primary"
                     : "text-muted-foreground"
                 }`}>
                 {item.label}
-              </button>
+              </a>
             ))}
           </div>
-          <Button onClick={() => scrollToSection("contact")}>
-            Contact Sales
-          </Button>
+          <a href="#contact">
+            <Button>Contact Sales</Button>
+          </a>
         </div>
       </div>
     </nav>
