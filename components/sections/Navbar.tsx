@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +10,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ activeSection, scrollToSection }: NavbarProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
   const navItems = [
     { id: "hero", label: "Home" },
     { id: "features", label: "Features" },
@@ -18,11 +20,25 @@ export function Navbar({ activeSection, scrollToSection }: NavbarProps) {
     { id: "contact", label: "Contact" },
   ];
 
+  // Only add backdrop blur after scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-sm z-50 border-b">
+    <nav
+      className={`fixed top-0 w-full bg-background/80 z-50 border-b transform translate-z-0 ${
+        isScrolled ? "backdrop-blur-sm" : ""
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => scrollToSection("hero")}>
+          <div
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => scrollToSection("hero")}>
             <Mail className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">MailMind</span>
           </div>
@@ -32,14 +48,17 @@ export function Navbar({ activeSection, scrollToSection }: NavbarProps) {
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  activeSection === item.id ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
+                  activeSection === item.id
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}>
                 {item.label}
               </button>
             ))}
           </div>
-          <Button onClick={() => scrollToSection("contact")}>Contact Sales</Button>
+          <Button onClick={() => scrollToSection("contact")}>
+            Contact Sales
+          </Button>
         </div>
       </div>
     </nav>
