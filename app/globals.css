@@ -84,3 +84,21 @@ html {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes check {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-check {
+  animation: check 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}

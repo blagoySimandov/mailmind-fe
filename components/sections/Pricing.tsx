@@ -5,39 +5,36 @@ import { Card } from "@/components/ui/card";
 export function Pricing() {
   const plans = [
     {
-      name: "Starter",
-      price: "$49/mo",
+      name: "Basic",
+      price: "$19/mo",
       features: [
-        "Up to 1,000 emails/month",
+        "Up to 500 emails/month",
         "Basic email automation",
         "Standard response templates",
-        "Email analytics",
-        "8/5 support",
+        "Email support",
       ],
     },
     {
-      name: "Professional",
-      price: "$99/mo",
+      name: "Pro",
+      price: "$39/mo",
       popular: true,
       features: [
-        "Up to 5,000 emails/month",
+        "Up to 2,000 emails/month",
         "Advanced automation rules",
         "Custom response templates",
         "Priority inbox management",
-        "Advanced analytics",
-        "24/7 priority support",
+        "Email support",
       ],
     },
     {
-      name: "Enterprise",
-      price: "Custom",
+      name: "Business",
+      price: "$89/mo",
       features: [
-        "Unlimited emails",
+        "Up to 5,000 emails/month",
         "Custom automation workflows",
+        "Team collaboration",
         "API access",
-        "Dedicated account manager",
-        "Custom integrations",
-        "SLA guarantee",
+        "Email support",
       ],
     },
   ];
@@ -45,7 +42,15 @@ export function Pricing() {
   return (
     <section id="pricing" className="py-16 px-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12">Simple Pricing</h2>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Start free during early access. Choose the right plan for your needs
+            when we launch.
+          </p>
+        </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
             <div key={index} className="relative">
@@ -76,9 +81,12 @@ export function Pricing() {
                   <Button
                     className="w-full"
                     variant={plan.popular ? "default" : "outline"}>
-                    Contact Sales
+                    Get Early Access
                   </Button>
                 </a>
+                <p className="mt-3 text-xs text-center text-muted-foreground">
+                  Free during early access
+                </p>
               </Card>
             </div>
           ))}
