@@ -6,39 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-
+import { trpc } from "@/lib/trpc/client";
+type Industry =
+  | ""
+  | "property"
+  | "recruiting"
+  | "healthcare"
+  | "education"
+  | "other";
 export function Contact() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     company: "",
-    industry: "",
+    industry: "" as Industry,
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to submit form");
-      }
-
+  const submitMutation = trpc.contact.submit.useMutation({
+    onSuccess: () => {
       setSuccess(true);
       setFormData({
         firstName: "",
@@ -48,10 +37,42 @@ export function Contact() {
         industry: "",
         message: "",
       });
+      setErrors({});
+    },
+    onError: (error) => {
+      if (error.data?.zodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.data.zodError.fieldErrors &&
+          Object.entries(error.data.zodError.fieldErrors).forEach(
+            ([field, errors]) => {
+              if (errors && errors[0]) {
+                fieldErrors[field] = errors[0];
+              }
+            }
+          );
+        setErrors(fieldErrors);
+      } else {
+        setErrors({ form: error.message });
+      }
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    if (!formData.industry) {
+      setErrors({ industry: "Please select an industry" });
+      return;
+    }
+
+    try {
+      await submitMutation.mutateAsync({
+        ...formData,
+        industry: formData.industry as Exclude<Industry, "">,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit form");
-    } finally {
-      setIsSubmitting(false);
+      // Error is handled by the mutation's onError callback
     }
   };
 
@@ -75,7 +96,7 @@ export function Contact() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Ready to transform your email communication? Fill out the form below
             and our team will create a custom demo tailored to your
-            organization's needs.
+            organization&apos;s needs.
           </p>
         </div>
 
@@ -129,8 +150,8 @@ export function Contact() {
                 </div>
                 <h3 className="text-xl font-semibold">Thank You!</h3>
                 <p className="text-muted-foreground">
-                  We've received your message and will get back to you within 24
-                  hours.
+                  We&apos;ve received your message and will get back to you
+                  within 24 hours.
                 </p>
               </div>
             ) : (
@@ -150,8 +171,13 @@ export function Contact() {
                         value={formData.firstName}
                         onChange={handleChange}
                         required
-                        disabled={isSubmitting}
+                        disabled={submitMutation.isLoading}
                       />
+                      {errors.firstName && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.firstName}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-1 block">
@@ -163,8 +189,13 @@ export function Contact() {
                         value={formData.lastName}
                         onChange={handleChange}
                         required
-                        disabled={isSubmitting}
+                        disabled={submitMutation.isLoading}
                       />
+                      {errors.lastName && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.lastName}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -178,8 +209,13 @@ export function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      disabled={isSubmitting}
+                      disabled={submitMutation.isLoading}
                     />
+                    {errors.email && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">
@@ -192,8 +228,13 @@ export function Contact() {
                       value={formData.company}
                       onChange={handleChange}
                       required
-                      disabled={isSubmitting}
+                      disabled={submitMutation.isLoading}
                     />
+                    {errors.company && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.company}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">
@@ -205,7 +246,7 @@ export function Contact() {
                       value={formData.industry}
                       onChange={handleChange}
                       required
-                      disabled={isSubmitting}>
+                      disabled={submitMutation.isLoading}>
                       <option value="">Select your industry</option>
                       <option value="property">Property Management</option>
                       <option value="recruiting">Recruiting & HR</option>
@@ -213,6 +254,11 @@ export function Contact() {
                       <option value="education">Education</option>
                       <option value="other">Other</option>
                     </select>
+                    {errors.industry && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.industry}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">
@@ -225,20 +271,31 @@ export function Contact() {
                       value={formData.message}
                       onChange={handleChange}
                       required
-                      disabled={isSubmitting}
+                      disabled={submitMutation.isLoading}
                     />
+                    {errors.message && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.message}
+                      </p>
+                    )}
                   </div>
-                  {error && <p className="text-sm text-red-500">{error}</p>}
+                  {errors.form && (
+                    <p className="text-sm text-red-500 text-center">
+                      {errors.form}
+                    </p>
+                  )}
                   <Button
                     className="w-full"
                     size="lg"
                     type="submit"
-                    disabled={isSubmitting}>
-                    {isSubmitting ? "Submitting..." : "Get Your Custom Demo"}
+                    disabled={submitMutation.isLoading}>
+                    {submitMutation.isLoading
+                      ? "Submitting..."
+                      : "Get Your Custom Demo"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <p className="text-sm text-muted-foreground text-center">
-                    We'll get back to you within 24 hours
+                    We&apos;ll get back to you within 24 hours
                   </p>
                 </form>
               </>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mail, Users } from "lucide-react";
+import { Mail, Users, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,10 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { trpc } from "@/lib/trpc/client";
 
 // More realistic numbers
 const BASE_USERS = 342;
-const MAX_SPOTS = 500;
+const MAX_SPOTS = 1000;
 const STORAGE_KEY = "mailmind_waitlist_count";
 const LAST_UPDATE_KEY = "mailmind_last_update";
 
@@ -40,17 +41,15 @@ const calculateInitialUsers = () => {
   return updatedCount;
 };
 
-export function SignUpDialog({
-  open,
-  onOpenChange,
-}: {
+interface SignUpDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}) {
+}
+
+export function SignUpDialog({ open, onOpenChange }: SignUpDialogProps) {
   const [email, setEmail] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [userCount, setUserCount] = useState(() => {
     // Only run on client side
     if (typeof window !== "undefined") {
@@ -61,7 +60,7 @@ export function SignUpDialog({
 
   // Slow, realistic counter animation
   useEffect(() => {
-    if (open && !isSubmitted) {
+    if (open && !success) {
       const interval = setInterval(() => {
         setUserCount((prev) => {
           // Add a new user every 2-3 minutes on average (0.6% chance per second)
@@ -78,40 +77,38 @@ export function SignUpDialog({
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [open, isSubmitted]);
+  }, [open, success]);
+
+  const submitMutation = trpc.waitlist.submit.useMutation({
+    onSuccess: () => {
+      setSuccess(true);
+      setEmail("");
+      setError("");
+      // Increment user count on successful submission
+      setUserCount((prev) => {
+        const newCount = Math.min(MAX_SPOTS, prev + 1);
+        localStorage.setItem(STORAGE_KEY, newCount.toString());
+        localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
+        return newCount;
+      });
+    },
+    onError: (error) => {
+      if (error.data?.zodError?.fieldErrors.email) {
+        setError(error.data.zodError.fieldErrors.email[0]);
+      } else {
+        setError(error.message);
+      }
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setIsSubmitting(true);
-      setError("");
+    setError("");
 
-      try {
-        const response = await fetch("/api/waitlist", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || "Failed to join waitlist");
-        }
-
-        setIsSubmitted(true);
-        const newCount = userCount + 1;
-        setUserCount(newCount);
-        localStorage.setItem(STORAGE_KEY, newCount.toString());
-        localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to join waitlist"
-        );
-      } finally {
-        setIsSubmitting(false);
-      }
+    try {
+      await submitMutation.mutateAsync({ email });
+    } catch (err) {
+      // Error is handled by the mutation's onError callback
     }
   };
 
@@ -119,7 +116,7 @@ export function SignUpDialog({
   const progressPercentage = Math.min(100, (userCount / MAX_SPOTS) * 100);
 
   // Early return if no spots left
-  if (spotsLeft === 0 && !isSubmitted) {
+  if (spotsLeft === 0 && !success) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
@@ -143,14 +140,18 @@ export function SignUpDialog({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={submitMutation.isLoading}
               />
+              {error && <p className="text-sm text-red-500">{error}</p>}
             </div>
-            <Button type="submit" className="w-full">
-              Notify Me
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={submitMutation.isLoading}>
+              {submitMutation.isLoading ? "Submitting..." : "Notify Me"}
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-              By signing up, you agree to our Terms of Service and Privacy
-              Policy.
+              By signing up, you agree to receive updates about MailMind.
             </p>
           </form>
         </DialogContent>
@@ -161,22 +162,32 @@ export function SignUpDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Mail className="h-6 w-6 text-primary" />
+        {success ? (
+          <div className="text-center py-6 space-y-4">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold">Thank You!</h3>
+            <p className="text-muted-foreground">
+              Thank you for supporting MailMind! We'll contact you soon with
+              exclusive early access details.
+            </p>
           </div>
-          <DialogTitle className="text-center text-xl">
-            {isSubmitted ? "Thank You!" : "Join the Waitlist"}
-          </DialogTitle>
-          <DialogDescription className="text-center">
-            {isSubmitted
-              ? "We'll notify you when MailMind is ready."
-              : "Be among the first to experience MailMind and get exclusive early access."}
-          </DialogDescription>
-        </DialogHeader>
-        {!isSubmitted ? (
+        ) : (
           <>
-            <div className="space-y-4 mb-4">
+            <DialogHeader>
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+              <DialogTitle className="text-center text-xl">
+                Join the Waitlist
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                Be among the first to experience MailMind and get exclusive
+                early access.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
@@ -208,54 +219,28 @@ export function SignUpDialog({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  disabled={isSubmitting}
+                  disabled={submitMutation.isLoading}
                 />
                 {error && <p className="text-sm text-red-500">{error}</p>}
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Joining..." : "Join Waitlist"}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={submitMutation.isLoading}>
+                {submitMutation.isLoading ? (
+                  "Joining..."
+                ) : (
+                  <>
+                    Join Waitlist
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                By signing up, you agree to our Terms of Service and Privacy
-                Policy.
+                By joining, you agree to receive updates about MailMind.
               </p>
             </form>
           </>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center py-4">
-              <div className="rounded-full bg-primary/10 p-2">
-                <div className="animate-check h-8 w-8 rounded-full border-2 border-primary flex items-center justify-center">
-                  <svg
-                    className="h-5 w-5 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <div className="text-center text-sm text-muted-foreground">
-              <p>You're number {userCount.toLocaleString()} in line!</p>
-              {spotsLeft > 0 ? (
-                <p>
-                  Only {spotsLeft} {spotsLeft === 1 ? "spot" : "spots"}{" "}
-                  remaining.
-                </p>
-              ) : (
-                <p>You got the last spot!</p>
-              )}
-              <p className="mt-2 text-xs">
-                We'll email you when MailMind is ready for you to try.
-              </p>
-            </div>
-          </div>
         )}
       </DialogContent>
     </Dialog>
