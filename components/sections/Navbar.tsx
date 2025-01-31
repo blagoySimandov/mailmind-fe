@@ -1,7 +1,7 @@
 "use client";
 
-import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface NavbarProps {
   activeSection: string;
@@ -22,8 +22,13 @@ export function Navbar({ activeSection }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <a href="#hero" className="flex items-center space-x-2">
-            <Mail className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">MailMind</span>
+            <Image
+              src="/static/logo-no-background.png"
+              alt="MailMind Logo"
+              width={120}
+              height={30}
+              className="h-8 w-auto"
+            />
           </a>
           <div className="hidden md:flex space-x-8">
             {navItems.map((item) => (

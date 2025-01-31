@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { SignUpDialog } from "@/components/SignUpDialog";
+import Image from "next/image";
 
 export function Pricing() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,6 +47,15 @@ export function Pricing() {
     <section id="pricing" className="py-16 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/static/logo-no-background.png"
+              alt="MailMind Logo"
+              width={200}
+              height={50}
+              className="h-12 w-auto"
+            />
+          </div>
           <h2 className="text-3xl font-bold mb-4">
             Simple, Transparent Pricing
           </h2>

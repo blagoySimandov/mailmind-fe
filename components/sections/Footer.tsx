@@ -1,4 +1,4 @@
-import { Mail } from "lucide-react";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -6,10 +6,13 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
         <div>
           <a href="#hero" className="inline-block">
-            <div className="flex items-center space-x-2 mb-4">
-              <Mail className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">MailMind</span>
-            </div>
+            <Image
+              src="/static/logo-no-background.png"
+              alt="MailMind Logo"
+              width={140}
+              height={35}
+              className="h-10 w-auto mb-4"
+            />
           </a>
           <p className="text-muted-foreground">
             Intelligent email automation for modern businesses.
