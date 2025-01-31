@@ -108,7 +108,9 @@ export function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Direct Contact</h3>
-                    <p className="text-muted-foreground">sales@mailmind.com</p>
+                    <p className="text-muted-foreground">
+                      blagoy@simandoff.com
+                    </p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">

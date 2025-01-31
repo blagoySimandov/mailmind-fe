@@ -1,13 +1,13 @@
-import { pgTable, serial, varchar, timestamp, text } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp, text, uuid } from "drizzle-orm/pg-core";
 
 export const waitlistEntries = pgTable("waitlist_entries", {
-  id: serial("id").primaryKey(),
+  id: uuid().notNull().primaryKey().defaultRandom(),
   email: varchar("email", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const contactFormEntries = pgTable("contact_form_entries", {
-  id: serial("id").primaryKey(),
+  id: uuid().notNull().primaryKey().defaultRandom(),
   firstName: varchar("first_name", { length: 100 }).notNull(),
   lastName: varchar("last_name", { length: 100 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { waitlistEntries } from "@/lib/db/schema";
 
+//Waitlist Mutation Route
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();
