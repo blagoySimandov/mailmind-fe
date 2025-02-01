@@ -98,9 +98,9 @@ export default function TermsOfService() {
             <p className="text-muted-foreground mb-4">
               If you have any questions about these Terms, please contact us at{" "}
               <a
-                href="mailto:blagoy@simandoff.com"
+                href="mailto:contact@mailmind.net"
                 className="text-primary hover:underline">
-                blagoy@simandoff.com
+                support@mailmind.net
               </a>
             </p>
           </section>

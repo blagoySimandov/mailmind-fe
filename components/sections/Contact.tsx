@@ -130,7 +130,7 @@ export function Contact() {
                   <div>
                     <h3 className="font-semibold">Direct Contact</h3>
                     <p className="text-muted-foreground">
-                      blagoy@simandoff.com
+                      contact@mailmind.net
                     </p>
                   </div>
                 </div>
