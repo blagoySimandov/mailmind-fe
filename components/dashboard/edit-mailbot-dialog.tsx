@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Dialog,
   DialogContent,
@@ -90,10 +88,7 @@ export default function EditMailbotDialog({
   const onSubmit = async (data: MailbotFormValues) => {
     updateMailbot.mutate({
       id: mailbotId,
-      data: {
-        ...data,
-        userId: mailbot?.userId || "",
-      },
+      data,
     });
   };
 
@@ -107,7 +102,7 @@ export default function EditMailbotDialog({
         <DialogHeader>
           <DialogTitle>Edit Mailbot</DialogTitle>
           <DialogDescription>
-            Modify your mailbot's configuration
+            Modify your mailbot&apos;s configuration
           </DialogDescription>
         </DialogHeader>
 

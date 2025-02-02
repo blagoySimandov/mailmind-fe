@@ -104,7 +104,6 @@ export default function CreateMailbotDialog({
     console.log("Creating mailbot with user ID:", session.user.id);
     createMailbot.mutate({
       ...data,
-      userId: session.user.id as string,
     });
   };
 
