@@ -1,3 +1,4 @@
+"use client";
 import {
   Dialog,
   DialogContent,
@@ -27,16 +28,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { type ControllerRenderProps } from "react-hook-form";
+import { X } from "lucide-react";
+import { trpc } from "@/lib/trpc/client";
+import { useToast } from "@/hooks/use-toast";
+import { useSession } from "next-auth/react";
+import type { TRPCClientErrorLike } from "@trpc/client";
+import type { AppRouter } from "@/lib/trpc/root";
+import { mailbotSchema } from "@/lib/validators/mailbot";
 
-const mailbotSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
-  context: z.string().min(1, "Context is required"),
-  triggerType: z.enum(["pattern", "keywords", "ai"]),
-  pattern: z.string().optional(),
-  keywords: z.string().optional(),
-  aiCriteria: z.string().optional(),
-});
+
 
 type MailbotFormValues = z.infer<typeof mailbotSchema>;
 
@@ -49,25 +49,67 @@ export default function CreateMailbotDialog({
   open,
   onOpenChange,
 }: CreateMailbotDialogProps) {
+  const { data: session } = useSession();
+  const { toast } = useToast();
+  const utils = trpc.useUtils();
+
+  const createMailbot = trpc.mailbots.create.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Mailbot created successfully",
+      });
+      onOpenChange(false);
+      utils.mailbots.invalidate();
+    },
+    onError: (error: TRPCClientErrorLike<AppRouter>) => {
+      console.error("Mutation error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create mailbot",
+        variant: "destructive",
+      });
+    },
+  });
+
   const form = useForm<MailbotFormValues>({
     resolver: zodResolver(mailbotSchema),
     defaultValues: {
       name: "",
       description: "",
       context: "",
-      triggerType: "pattern",
-      pattern: "",
-      keywords: "",
+      triggerType: "EMAIL_PATTERN",
+      pattern: "*",
+      keywords: [],
       aiCriteria: "",
+      userId: "",
     },
   });
 
   const triggerType = form.watch("triggerType");
 
   const onSubmit = async (data: MailbotFormValues) => {
-    console.log(data);
-    onOpenChange(false);
+    console.log("Form submitted with data:", data);
+
+    if (!session?.user?.id) {
+      console.error("No user ID found in session");
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a mailbot",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Creating mailbot with user ID:", session.user.id);
+    createMailbot.mutate({
+      ...data,
+      userId: session.user.id as string,
+    });
   };
+
+  // Log when the form is rendered
+  console.log("Form state:", form.formState);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -80,7 +122,12 @@ export default function CreateMailbotDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={(e) => {
+              console.log("Form submit event triggered");
+              form.handleSubmit(onSubmit)(e);
+            }}
+            className="space-y-6">
             <FormField
               control={form.control}
               name="name"
@@ -161,9 +208,13 @@ export default function CreateMailbotDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="pattern">Email Pattern</SelectItem>
-                      <SelectItem value="keywords">Keywords</SelectItem>
-                      <SelectItem value="ai">AI Criteria</SelectItem>
+                      <SelectItem value="EMAIL_PATTERN">
+                        Email Pattern
+                      </SelectItem>
+                      <SelectItem value="IN_BODY_KEYWORDS">Keywords</SelectItem>
+                      <SelectItem value="BODY_AI_ANALYSIS">
+                        AI Criteria
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -171,7 +222,7 @@ export default function CreateMailbotDialog({
               )}
             />
 
-            {triggerType === "pattern" && (
+            {triggerType === "EMAIL_PATTERN" && (
               <FormField
                 control={form.control}
                 name="pattern"
@@ -194,7 +245,7 @@ export default function CreateMailbotDialog({
               />
             )}
 
-            {triggerType === "keywords" && (
+            {triggerType === "IN_BODY_KEYWORDS" && (
               <FormField
                 control={form.control}
                 name="keywords"
@@ -206,10 +257,47 @@ export default function CreateMailbotDialog({
                   <FormItem>
                     <FormLabel>Keywords</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter keywords separated by commas"
-                        {...field}
-                      />
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-wrap gap-2 p-2 bg-background rounded-md border min-h-[38px]">
+                          {field.value?.map((keyword, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-md">
+                              <span>{keyword}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newKeywords = [...(field.value || [])];
+                                  newKeywords.splice(index, 1);
+                                  field.onChange(newKeywords);
+                                }}
+                                className="text-primary hover:text-primary/80">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                          <Input
+                            className="border-0 w-[200px] focus-visible:ring-0 px-0 placeholder:text-muted-foreground"
+                            placeholder="Type and press Enter to add"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const value = e.currentTarget.value.trim();
+                                if (value) {
+                                  field.onChange([
+                                    ...(field.value || []),
+                                    value,
+                                  ]);
+                                  e.currentTarget.value = "";
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Press Enter after each keyword
+                        </p>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -217,7 +305,7 @@ export default function CreateMailbotDialog({
               />
             )}
 
-            {triggerType === "ai" && (
+            {triggerType === "BODY_AI_ANALYSIS" && (
               <FormField
                 control={form.control}
                 name="aiCriteria"
@@ -245,10 +333,16 @@ export default function CreateMailbotDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}>
+                onClick={() => onOpenChange(false)}
+                disabled={createMailbot.isLoading}>
                 Cancel
               </Button>
-              <Button type="submit">Create Mailbot</Button>
+              <Button
+                type="submit"
+                disabled={createMailbot.isLoading || !form.formState.isValid}
+                onClick={() => console.log("Submit button clicked")}>
+                {createMailbot.isLoading ? "Creating..." : "Create Mailbot"}
+              </Button>
             </div>
           </form>
         </Form>

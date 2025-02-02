@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Pencil, Trash2, Plus } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 interface Mailbot {
   id: string;
@@ -82,8 +82,8 @@ export default function MailbotList() {
               {mailbot.triggerType === "pattern"
                 ? `Pattern: ${mailbot.pattern}`
                 : mailbot.triggerType === "keywords"
-                ? `Keywords: ${mailbot.keywords}`
-                : `AI Criteria`}
+                  ? `Keywords: ${mailbot.keywords}`
+                  : `AI Criteria`}
             </div>
           </CardContent>
         </Card>

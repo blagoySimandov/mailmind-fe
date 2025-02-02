@@ -3,8 +3,12 @@
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import GoogleIcon from "@/components/icons/google";
+import { useSearchParams } from "next/navigation";
 
 export default function SignIn() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-full max-w-sm space-y-6 rounded-lg border p-8 shadow-lg">
@@ -15,7 +19,7 @@ export default function SignIn() {
           </p>
         </div>
         <Button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={() => signIn("google", { callbackUrl })}
           className="w-full flex items-center justify-center gap-2"
           variant="outline">
           <GoogleIcon className="h-5 w-5" />
