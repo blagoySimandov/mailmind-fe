@@ -126,7 +126,9 @@ export const contactSubmissions = pgTable("contact_submissions", {
 
 export const mailbots = pgTable("bots", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").references(() => users.id),
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   context: text("context").notNull(),
