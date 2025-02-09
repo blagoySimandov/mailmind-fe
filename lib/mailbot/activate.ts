@@ -9,7 +9,6 @@ interface WatchResponse {
   topicName: string;
 }
 async function getGmailClient(userId: string) {
-  // Get the user's session from NextAuth
   const result = await db.query.users.findMany(
     {
       where: eq(users.id, userId),
