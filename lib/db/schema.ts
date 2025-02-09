@@ -60,6 +60,7 @@ export const accounts = pgTable(
   ]
 );
 
+
 export const sessions = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
@@ -124,7 +125,7 @@ export const contactSubmissions = pgTable("contact_submissions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const mailbots = pgTable("bots", {
+export const mailbots = pgTable("mailbots", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")
     .references(() => users.id)
@@ -139,4 +140,7 @@ export const mailbots = pgTable("bots", {
     .notNull()
     .default(sql`'{}'::text[]`),
   aiCriteria: text("ai_criteria"),
+  watchHistoryId: text("watchHistoryId"), //TODO: Is this unique ?
+  watchExpiration: timestamp("watchExpiration"),
 });
+//TODO: add an archived field to archive bots

@@ -5,8 +5,8 @@ import { db } from "@/lib/db";
 
 declare module "next-auth" {
   interface Session {
-    accessToken: string | unknown;
-    refreshToken: string | unknown;
+    accessToken: string | undefined;
+    refreshToken: string | undefined;
     user: {
       id: string | unknown;
       email: string;
